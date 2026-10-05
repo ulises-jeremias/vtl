@@ -66,13 +66,13 @@ pub fn (mut ls SequentialInfo[T]) maxpool2d(kernel []int, padding []int, stride 
 	shape := layer.output_shape()
 	ls.add_layer(layers.maxpool2d_layer[T](ls.ctx, shape, kernel, padding, stride),
 		'MaxPool2DLayer', {
-			'kernel_h':  kernel[0]
-			'kernel_w':  kernel[1]
-			'padding_h': padding[0]
-			'padding_w': padding[1]
-			'stride_h':  stride[0]
-			'stride_w':  stride[1]
-		})
+		'kernel_h':  kernel[0]
+		'kernel_w':  kernel[1]
+		'padding_h': padding[0]
+		'padding_w': padding[1]
+		'stride_h':  stride[0]
+		'stride_w':  stride[1]
+	})
 }
 
 // mse_loss sets the loss function to the mean squared error loss.
@@ -158,27 +158,6 @@ pub fn (mut ls SequentialInfo[T]) mish() {
 	ls.add_layer(layers.mish_layer[T](ls.ctx, shape), 'MishLayer', {})
 }
 
-// softplus adds a Softplus layer to the network.
-pub fn (mut ls SequentialInfo[T]) softplus() {
-	layer := ls.layers[ls.layers.len - 1]
-	shape := layer.output_shape()
-	ls.add_layer(layers.softplus_layer[T](ls.ctx, shape), 'SoftplusLayer', {})
-}
-
-// selu adds a SELU layer to the network.
-pub fn (mut ls SequentialInfo[T]) selu() {
-	layer := ls.layers[ls.layers.len - 1]
-	shape := layer.output_shape()
-	ls.add_layer(layers.selu_layer[T](ls.ctx, shape), 'SELULayer', {})
-}
-
-// hardswish adds a HardSwish layer to the network.
-pub fn (mut ls SequentialInfo[T]) hardswish() {
-	layer := ls.layers[ls.layers.len - 1]
-	shape := layer.output_shape()
-	ls.add_layer(layers.hardswish_layer[T](ls.ctx, shape), 'HardSwishLayer', {})
-}
-
 // conv2d adds a new Conv2D layer to the network.
 pub fn (mut ls SequentialInfo[T]) conv2d(in_channels int, out_channels int, kernel_size []int, config layers.Conv2DConfig) {
 	prev_layer := ls.layers[ls.layers.len - 1]
@@ -216,13 +195,13 @@ pub fn (mut ls SequentialInfo[T]) avgpool2d(kernel []int, padding []int, stride 
 	shape := layer.output_shape()
 	ls.add_layer(layers.avgpool2d_layer[T](ls.ctx, shape, kernel, padding, stride),
 		'AvgPool2DLayer', {
-			'kernel_h':  kernel[0]
-			'kernel_w':  kernel[1]
-			'padding_h': padding[0]
-			'padding_w': padding[1]
-			'stride_h':  stride[0]
-			'stride_w':  stride[1]
-		})
+		'kernel_h':  kernel[0]
+		'kernel_w':  kernel[1]
+		'padding_h': padding[0]
+		'padding_w': padding[1]
+		'stride_h':  stride[0]
+		'stride_w':  stride[1]
+	})
 }
 
 // global_avgpool2d adds a new GlobalAveragePool2D layer to the network.
@@ -261,19 +240,19 @@ pub fn (mut ls SequentialInfo[T]) lstm(input_size int, hidden_size int, num_laye
 pub fn (mut ls SequentialInfo[T]) multihead_attention(embed_dim int, num_heads int) {
 	ls.add_layer(layers.multihead_attention_layer[T](ls.ctx, embed_dim, num_heads),
 		'MultiHeadAttentionLayer', {
-			'embed_dim': embed_dim
-			'num_heads': num_heads
-			'head_dim':  embed_dim / num_heads
-		})
+		'embed_dim': embed_dim
+		'num_heads': num_heads
+		'head_dim':  embed_dim / num_heads
+	})
 }
 
 // positional_encoding adds a new PositionalEncoding layer to the network.
 pub fn (mut ls SequentialInfo[T]) positional_encoding(embed_dim int, max_len int) {
 	ls.add_layer(layers.positional_encoding_layer[T](ls.ctx, embed_dim, max_len) or { panic(err) },
 		'PositionalEncodingLayer', {
-			'embed_dim': embed_dim
-			'max_len':   max_len
-		})
+		'embed_dim': embed_dim
+		'max_len':   max_len
+	})
 }
 
 // cross_entropy_loss sets the loss function to cross entropy loss.

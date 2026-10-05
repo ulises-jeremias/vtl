@@ -1,7 +1,7 @@
 module models
 
 import os
-import json2
+import json
 import math
 import vtl
 import vtl.nn.types
@@ -40,7 +40,7 @@ fn test_save_and_load_simple_model() {
 
 	// Load the saved JSON and verify structure
 	content := os.read_file(model_path)!
-	model := json2.decode[ModelFile](content)!
+	model := json.decode(ModelFile, content)!
 
 	// Check version
 	assert model.version == '1.0'
@@ -64,35 +64,6 @@ fn test_save_and_load_simple_model() {
 	assert model.layer_data[2].weights.len == 0
 }
 
-fn test_save_model_with_new_activation_layers() {
-	test_dir := setup_test_dir()
-	defer {
-		cleanup_test_dir()
-	}
-	mut nn := sequential_with_layers[f64]([]types.Layer[f64]{})
-	nn.input([3])
-	nn.softplus()
-	nn.selu()
-	nn.hardswish()
-	model_path := '${test_dir}/activation_model.json'
-	nn.save(model_path)!
-	content := os.read_file(model_path)!
-	model := json2.decode[ModelFile](content)!
-	assert model.layers.map(it.layer_type) == ['InputLayer', 'SoftplusLayer', 'SELULayer',
-		'HardSwishLayer']
-	assert model.layer_data[1].weights.len == 0
-	assert model.layer_data[2].weights.len == 0
-	assert model.layer_data[3].weights.len == 0
-
-	mut restored := sequential_with_layers[f64]([]types.Layer[f64]{})
-	restored.input([3])
-	restored.softplus()
-	restored.selu()
-	restored.hardswish()
-	restored.load_weights(model_path)!
-	assert restored.info.layer_types == ['InputLayer', 'SoftplusLayer', 'SELULayer', 'HardSwishLayer']
-}
-
 fn test_save_with_loss_and_epoch() {
 	test_dir := setup_test_dir()
 	defer {
@@ -108,7 +79,7 @@ fn test_save_with_loss_and_epoch() {
 	nn.save_checkpoint(model_weights_path, 42, 0.123)!
 
 	content := os.read_file(model_weights_path)!
-	model := json2.decode[ModelFile](content)!
+	model := json.decode(ModelFile, content)!
 
 	assert model.metadata.epoch == 42
 	assert model.metadata.loss == 0.123
@@ -182,9 +153,9 @@ fn test_version_mismatch() {
 
 	// Modify the version in the file
 	content := os.read_file(path)!
-	mut model := json2.decode[ModelFile](content)!
+	mut model := json.decode(ModelFile, content)!
 	model.version = '99.9'
-	modified := json2.encode(model, escape_unicode: true, time_as_unix: true)
+	modified := json.encode(model)
 	os.write_file(path, modified)!
 
 	// Try to load - should fail version check
@@ -243,9 +214,9 @@ fn test_layer_type_mismatch() {
 
 	// Modify file to change a layer type
 	content := os.read_file(path)!
-	mut model := json2.decode[ModelFile](content)!
+	mut model := json.decode(ModelFile, content)!
 	model.layers[1].layer_type = 'ReLULayer' // Changed from LinearLayer
-	modified := json2.encode(model, escape_unicode: true, time_as_unix: true)
+	modified := json.encode(model)
 	os.write_file(path, modified)!
 
 	mut nn2 := sequential_with_layers[f64]([]types.Layer[f64]{})
@@ -319,7 +290,7 @@ fn test_batchnorm_serialization() {
 	nn.save(path)!
 
 	content := os.read_file(path)!
-	model := json2.decode[ModelFile](content)!
+	model := json.decode(ModelFile, content)!
 
 	// BatchNorm1D should have gamma, beta, running_mean, running_var
 	assert model.layer_data[1].weights.len >= 2
@@ -341,7 +312,7 @@ fn test_lstm_serialization() {
 	nn.save(path)!
 
 	content := os.read_file(path)!
-	model := json2.decode[ModelFile](content)!
+	model := json.decode(ModelFile, content)!
 
 	// Check LSTM layer config
 	lstm_layer := model.layers[1]
@@ -374,7 +345,7 @@ fn test_multilayer_perceptron_serialization() {
 	nn.save(path)!
 
 	content := os.read_file(path)!
-	model := json2.decode[ModelFile](content)!
+	model := json.decode(ModelFile, content)!
 
 	assert model.layers.len == 4
 	assert model.layers[0].layer_type == 'InputLayer'
@@ -457,7 +428,7 @@ fn test_convolutional_network_serialization() {
 	nn.save(path)!
 
 	content := os.read_file(path)!
-	model := json2.decode[ModelFile](content)!
+	model := json.decode(ModelFile, content)!
 
 	assert model.layers[0].layer_type == 'InputLayer'
 	assert model.layers[1].layer_type == 'Conv2DLayer'
@@ -487,7 +458,7 @@ fn test_embedding_layer_serialization() {
 	nn.save(path)!
 
 	content := os.read_file(path)!
-	model := json2.decode[ModelFile](content)!
+	model := json.decode(ModelFile, content)!
 
 	assert model.layers[1].layer_type == 'EmbeddingLayer'
 	assert model.layers[1].config['vocab_size'] == 16
@@ -509,7 +480,7 @@ fn test_multihead_attention_serialization() {
 	nn.save(path)!
 
 	content := os.read_file(path)!
-	model := json2.decode[ModelFile](content)!
+	model := json.decode(ModelFile, content)!
 
 	layer := model.layers[1]
 	assert layer.layer_type == 'MultiHeadAttentionLayer'
@@ -539,7 +510,7 @@ fn test_layer_norm_serialization() {
 	nn.save(path)!
 
 	content := os.read_file(path)!
-	model := json2.decode[ModelFile](content)!
+	model := json.decode(ModelFile, content)!
 
 	assert model.layers[1].layer_type == 'LayerNormLayer'
 	assert model.layers[1].config['normalized_shape_0'] == 128
@@ -631,7 +602,7 @@ fn test_readme_example() {
 
 	// Verify structure again
 	content := os.read_file(model_path)!
-	model := json2.decode[ModelFile](content)!
+	model := json.decode(ModelFile, content)!
 
 	assert model.layers.len == 4
 	assert model.metadata.version == '1.0'
